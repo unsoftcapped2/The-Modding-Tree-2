@@ -13,13 +13,11 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "2.5.9.2",
-	name: "Discord",
+	num: "2.6",
+	name: "The Role Update",
 }
 
-let changelog = `<h1>Changelog:</h1><br>
-	<h3>v2.5.9.2</h3><br>
-		- 4 more mod creators`
+let changelog = ``
 
 let winText = `Congratulations! You have reached the end and beaten this game, but for now...`
 
