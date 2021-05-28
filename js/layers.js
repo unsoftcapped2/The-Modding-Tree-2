@@ -6,7 +6,10 @@ addLayer("q", {
         unlocked: true,
 		points: new ExpantaNum(0),
     }},
-    color: "#0f0f0f", // Can be a function that takes requirement increases into account
+    color(){
+      if(player.theme=="aqua")return "#001f3f"
+      return "#0f0f0f"
+    }, // Can be a function that takes requirement increases into account
     type: "none", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
     row: "side", // Row the layer is in on the tree (0 is the first row)
 	resetsNothing(){return true},
