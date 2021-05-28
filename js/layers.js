@@ -1249,7 +1249,7 @@ upgrades:{
   unlocked(){return hasUpgrade("c",24)},
 },
 },
-  passiveGeneration(){return hasMilestone("me",1)},
+  passiveGeneration(){return hasMilestone("me",1)?1:0},
   doReset(resettingLayer){
   if (layers[resettingLayer].row > this.row) {
   let keep = []
@@ -1355,7 +1355,7 @@ upgrades:{
         done() { return player.me.points.gte("ee20") }
     },
 	},
-  passiveGeneration(){return hasMilestone("me",1)},
+  passiveGeneration(){return hasMilestone("me",1)?1:0},
   buyables: {
     11: {unlocked(){return hasUpgrade(this.layer,23)},
         cost() { return new ExpantaNum(10).pow(getBuyableAmount(this.layer,this.id)) },
