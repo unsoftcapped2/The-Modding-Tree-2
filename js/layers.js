@@ -1046,7 +1046,7 @@ getResetGain(){return new ExpantaNum(1)},
 getNextAt(){return new ExpantaNum("1e3000000000")},
 canReset() {return !hasMilestone("p",1)&&player.points.gte(layers.p.requires())},
 prestigeButtonText() {return (!hasMilestone("p",1)?("Gain 1 point. Requires: "+format(layers.p.requires())):"")},
-effectDescription() {return "tetrating your second gain by ^^"+format(player.p.points.plus(1))},
+effectDescription() {return (hasUpgrade("r",22)?"pentating":"tetrating")+" your second gain by "+format(player.p.points.plus(1))},
     exponent: 1, // Prestige currency exponent
     gainMult() { // Calculate the multiplier for main currency from bonuses
         mult = new ExpantaNum(1)
@@ -1190,6 +1190,7 @@ if(hasMilestone("c",1)){
   if(hasUpgrade("c",22))gain=gain.mul(2)
   if(hasUpgrade("me",12))gain=gain.mul(upgradeEffect("me",12))
   if(hasUpgrade("me",22))gain=gain.pow(1.2)
+  if(hasUpgrade("r",11))gain=EN.pow(10,EN(10).pow(gain.max(10).log10().log10().pow(upgradeEffect("r",11))))
   player.p.points=player.p.points.add(gain.mul(diff))
   
 }
@@ -1285,6 +1286,7 @@ if(hasUpgrade("me",21))r=r.div(upgradeEffect("me",21))
         mult = new ExpantaNum(1)
       if(hasUpgrade("me",11))mult=mult.mul(4)
       if(hasUpgrade("me",23))mult=mult.mul(buyableEffect("me",11))
+      if(hasUpgrade("r",21))mult=mult.tetrate(player.r.points)
         return mult
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
@@ -1387,6 +1389,105 @@ upgrades:{
       if(tmp.me.buyables[12].canAfford)setBuyableAmount("me",12,player.me.points.div(1e9).max(1).logBase(200).root(1.25).floor())
     }
   },
+  doReset(resettingLayer){
+  if (layers[resettingLayer].row > this.row) {
+  let keep = []
+  //keep.push("milestones")
+    layerDataReset(this.layer,keep)
+  }
+  },
+})
+addLayer("r", {
+    name: "Roles", // This is optional, only used in a few places, If absent it just uses the layer id.
+    symbol: "R", // This appears on the layer's node. Default is the id with the first letter capitalized
+    position: 2, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+    startData() { return {
+        unlocked: false,
+		points: new ExpantaNum(0),
+    }},
+	branches: ["p"],
+    color: "#dddd63",
+	requires(){
+let r= new ExpantaNum(100)
+
+  return r}, // Can be a function that takes requirement increases into account
+    resource: "Roles", // Name of prestige currency
+    baseResource(){
+      if(hasUpgrade("r",14))return "log(log(points))"
+      return "log(log(log(Points)))"}, // Name of resource prestige is based on
+    baseAmount() {let r= player.p.points.max("ee10").log10().log10()
+    if(!hasUpgrade("r",14))r=r.log10()
+                 return r}, // Get the current amount of baseResource
+    type: "static", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+    base: 2,
+    exponent: 1, // Prestige currency exponent
+  directMult(){mult=EN(1)
+    if(hasUpgrade("r",15))mult=mult.mul(player.me.points)
+               return mult
+  },
+    gainMult() { // Calculate the multiplier for main currency from bonuses
+        mult = new ExpantaNum(1)
+        return mult
+    },
+    gainExp() { // Calculate the exponent on main currency from bonuses
+	    let e = new ExpantaNum(1)
+        return e
+    },
+    row: 4, // Row the layer is in on the tree (0 is the first row)
+    hotkeys: [
+        {key: "R", description: "R: role reset", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+    ],
+    layerShown(){return player[this.layer].unlocked||(hasUpgrade("me",31))},	
+update(diff){
+},
+upgrades:{
+11:{
+  title:"^^^",
+  description(){return "Roles exponentiate point exponent exponent"},
+  effect(){return player.r.points.add(1)},
+  cost: new ExpantaNum(1),
+  unlocked(){return true},
+},
+  12:{
+  title:"<",
+  description(){return "Automatically role and roles reset nothing"},
+  cost: new ExpantaNum(50),
+  unlocked(){return hasUpgrade("r",11)},
+},
+  13:{
+  title:">",
+  description(){return "you can buy max roles"},
+  cost: new ExpantaNum(250),
+  unlocked(){return hasUpgrade("r",12)},
+},
+  14:{
+  title:"v",
+  description(){return "Roles use one less log"},
+  cost: new ExpantaNum(1250),
+  unlocked(){return hasUpgrade("r",13)},
+},
+  15:{
+  title:"Oo0",
+  description(){return "Members create roles"},
+  cost: new ExpantaNum("ee50"),
+  unlocked(){return hasUpgrade("r",14)},
+},
+  21:{
+  title:"Closing the loop",
+  description(){return "Roles tetrate members"},
+  cost: new ExpantaNum("10^^100"),
+  unlocked(){return hasUpgrade("r",15)},
+},
+  22:{
+  title:"Inflated game",
+  description(){return "The Point effect is different"},
+  cost: new ExpantaNum("10^^^200"),
+  unlocked(){return hasUpgrade("r",21)},
+},
+},
+  autoPrestige(){return hasUpgrade("r",12)},
+  resetsNothing(){return hasUpgrade("r",12)},
+  canBuyMax(){return hasUpgrade("r",13)},
   doReset(resettingLayer){
   if (layers[resettingLayer].row > this.row) {
   let keep = []

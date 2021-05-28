@@ -122,7 +122,9 @@ if (hasUpgrade("d",21)) gain=gain.pow(1.00106456)
 	if (inChallenge("f",31)) gain=gain.times(player.f.points)
 	if (hasMilestone("p",1)) {
 	if (player.points.lt("10^^1e10")) gain=gain.tetrate(player.p.points.plus(1))
-	else gain=new ExpantaNum(10).tetrate(player.p.points.plus(1))}
+	else gain=new ExpantaNum(10).tetrate(player.p.points.plus(1))
+  }
+  if(hasUpgrade("r",22))gain=EN(10).pentate(player.p.points.add(1))
 	return gain
 }
 
