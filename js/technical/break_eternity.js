@@ -914,6 +914,16 @@
   Q.chain=function (x,y,z){
     return new OmegaNum(x).arrow(z)(y);
   };
+  P.hyperlog =P.hlog= function(n) {
+  if(this.gt(OmegaNum.arrow(10, n, Number.MAX_SAFE_INTEGER))) {
+    let temp = this.clone()
+    temp.array[n]--
+    if(temp.array[n] == 0) temp.array.pop() 
+    return temp
+  } else {
+    return OmegaNum(this.array[n-1]+2)
+  }
+}
   Q.hyper=function (z){
     z=new OmegaNum(z);
     if (z.eq(OmegaNum.ZERO)) return function(x,y){return new OmegaNum(y).eq(OmegaNum.ZERO)?new OmegaNum(x):new OmegaNum(x).add(OmegaNum.ONE);};
