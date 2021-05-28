@@ -1202,7 +1202,7 @@ upgrades:{
   12:{
   title:"Begin II",
   description(){return "Point gain is boosted by your Points. Currently: x"+format(this.effect())},
-  effect(){return player.p.points.plus(10).ln().pow(hasUpgrade(this.layer,23)?3:1)},
+  effect(){return player.p.points.plus(10).ln().pow(hasUpgrade(this.layer,23)?hasUpgrade(this.layer,31)?27:3:1)},
   cost: new ExpantaNum(2),
   unlocked(){return hasUpgrade(this.layer,11)},
 },
@@ -1236,7 +1236,20 @@ upgrades:{
   cost: new ExpantaNum(1e10),
   unlocked(){return hasUpgrade("me",23)},
 },
+  24:{
+  title:"TMTT version > TMT version",
+  description(){return "Unlock a second member buyable."},
+  cost: new ExpantaNum(1e16),
+  unlocked(){return hasUpgrade("c",23)},
 },
+  31:{
+  title:"Pointy Pointy points",
+  description(){return "<b>what</b> is cubed"},
+  cost: new ExpantaNum(1e20),
+  unlocked(){return hasUpgrade("c",24)},
+},
+},
+  passiveGeneration(){return hasMilestone("me",1)},
   doReset(resettingLayer){
   if (layers[resettingLayer].row > this.row) {
   let keep = []
@@ -1273,6 +1286,7 @@ if(hasUpgrade("me",21))r=r.div(upgradeEffect("me",21))
     },
     gainExp() { // Calculate the exponent on main currency from bonuses
 	    let e = new ExpantaNum(1)
+      if(hasUpgrade("c",24))e=e.mul(buyableEffect("me",12))
         return e
     },
     row: 4, // Row the layer is in on the tree (0 is the first row)
@@ -1322,7 +1336,26 @@ upgrades:{
   cost: new ExpantaNum(500),
   unlocked(){return hasUpgrade("me",13)},
 },
+  31:{
+  title:"Roles",
+  description(){return "Your server is big enough, now we can create some roles. (next update)"},
+  cost: new ExpantaNum("eee100"),
+  unlocked(){return hasUpgrade("c",31)},
 },
+},
+  milestones: {
+    1: {
+        requirementDescription: "1e1000 members",
+        effectDescription: "gain 100% of members and channels on reset per second",
+        done() { return player.me.points.gte("1e1000") }
+    },
+    2: {
+        requirementDescription: "ee20 members",
+        effectDescription: "Autobuy member buyables",
+        done() { return player.me.points.gte("ee20") }
+    },
+	},
+  passiveGeneration(){return hasMilestone("me",1)},
   buyables: {
     11: {unlocked(){return hasUpgrade(this.layer,23)},
         cost() { return new ExpantaNum(10).pow(getBuyableAmount(this.layer,this.id)) },
@@ -1334,7 +1367,23 @@ upgrades:{
             setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
         },
     },
+    12: {unlocked(){return hasUpgrade("c",24)},
+        cost() { return new ExpantaNum(1e9).times(EN(200).pow(getBuyableAmount(this.layer,this.id).pow(1.25))) },
+        display() { return "Allow "+format(this.cost())+" people to advertise your server, which increases member gain by ^"+format(this.effect()) },
+      effect(){return EN(1).add(getBuyableAmount(this.layer,this.id).pow(0.8).div(10))},
+        canAfford() { return player[this.layer].points.gte(this.cost()) },
+        buy() {
+            player[this.layer].points = player[this.layer].points.sub(this.cost())
+            setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+        },
+    },
 },
+  automate(){
+    if(hasMilestone("me",2)){
+      if(tmp.me.buyables[11].canAfford)setBuyableAmount("me",11,player.me.points.max(1).log10().floor())
+      if(tmp.me.buyables[12].canAfford)setBuyableAmount("me",12,player.me.points.div(1e9).max(1).logBase(200).root(1.25).floor())
+    }
+  },
   doReset(resettingLayer){
   if (layers[resettingLayer].row > this.row) {
   let keep = []
