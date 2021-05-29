@@ -13,8 +13,8 @@ let modInfo = {
 
 // Set your version in num and name
 let VERSION = {
-	num: "2.6",
-	name: "The Role Update",
+	num: "2.7",
+	name: "Lag{420}Lag",
 }
 
 let changelog = ``
@@ -125,9 +125,19 @@ if (hasUpgrade("d",21)) gain=gain.pow(1.00106456)
 	else gain=new ExpantaNum(10).tetrate(player.p.points.plus(1))
   }
   if(hasUpgrade("r",22))gain=EN(10).pentate(player.p.points.add(1))
+  if(hasUpgrade("r",23)){
+    let arrows = getArrows()
+    
+    gain=EN(10).arrow(arrows)(player.p.points.add(1))
+  }
 	return gain
 }
-
+function getArrows(){
+  let arrows = EN(4)
+  if(hasUpgrade("e",11))arrows=arrows.add(player.e.points)
+  if(hasMilestone("y",0))arrows=arrows.add(player.y.points)
+  return arrows
+}
 // You can add non-layer related variables that should to into "player" and be saved here, along with default values
 function addedPlayerData() { return {
 }}
