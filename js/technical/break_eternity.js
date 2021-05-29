@@ -923,7 +923,7 @@
   } else {
     return OmegaNum(this.array[n-1]+2)
   }
-}
+  }
   Q.hyper=function (z){
     z=new OmegaNum(z);
     if (z.eq(OmegaNum.ZERO)) return function(x,y){return new OmegaNum(y).eq(OmegaNum.ZERO)?new OmegaNum(x):new OmegaNum(x).add(OmegaNum.ONE);};

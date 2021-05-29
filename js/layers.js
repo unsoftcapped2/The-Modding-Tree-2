@@ -1046,7 +1046,9 @@ getResetGain(){return new ExpantaNum(1)},
 getNextAt(){return new ExpantaNum("1e3000000000")},
 canReset() {return !hasMilestone("p",1)&&player.points.gte(layers.p.requires())},
 prestigeButtonText() {return (!hasMilestone("p",1)?("Gain 1 point. Requires: "+format(layers.p.requires())):"")},
-effectDescription() {return (hasUpgrade("r",22)?"pentating":"tetrating")+" your second gain by "+format(player.p.points.plus(1))},
+effectDescription() {
+  if(hasUpgrade("r",23))return "Hyperoperating your second gain by "+format(getArrows())+" to "+format(player.p.points.plus(1))
+  return (hasUpgrade("r",22)?"pentating":"tetrating")+" your second gain by "+format(player.p.points.plus(1))},
     exponent: 1, // Prestige currency exponent
     gainMult() { // Calculate the multiplier for main currency from bonuses
         mult = new ExpantaNum(1)
@@ -1191,6 +1193,7 @@ if(hasMilestone("c",1)){
   if(hasUpgrade("me",12))gain=gain.mul(upgradeEffect("me",12))
   if(hasUpgrade("me",22))gain=gain.pow(1.2)
   if(hasUpgrade("r",11))gain=EN.pow(10,EN(10).pow(gain.max(10).log10().log10().pow(upgradeEffect("r",11))))
+  if(hasUpgrade("e",12))gain=EN(10).arrow(getArrows())(player.p.points)
   player.p.points=player.p.points.add(gain.mul(diff))
   
 }
@@ -1484,6 +1487,12 @@ upgrades:{
   cost: new ExpantaNum("10^^^200"),
   unlocked(){return hasUpgrade("r",21)},
 },
+  23:{
+  title:"∞",
+  description(){return "Unlock emojis, and add 1 arrow to the point effect"},
+  cost: new ExpantaNum("10^^^2000"),
+  unlocked(){return hasUpgrade("r",22)},
+},
 },
   autoPrestige(){return hasUpgrade("r",12)},
   resetsNothing(){return hasUpgrade("r",12)},
@@ -1496,3 +1505,677 @@ upgrades:{
   }
   },
 })
+let requirements = [EN("10^^^2000"),EN(Infinity)]
+addLayer("e", {
+    name: "Emojis", // This is optional, only used in a few places, If absent it just uses the layer id.
+    symbol: "E", // This appears on the layer's node. Default is the id with the first letter capitalized
+    position: 3, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+    startData() { return {
+        unlocked: false,
+		points: new ExpantaNum(0),
+    }},
+	branches: ["p"],
+    color: "#999999",
+    resource: "Emojis", // Name of prestige currency
+    baseResource(){return "points"}, // Name of resource prestige is based on
+    baseAmount() {return player.p.points}, // Get the current amount of baseResource
+    canReset(){return this.getResetGain().gt(0)},
+    getResetGain(){
+    
+      if(player.p.points.gte(requirements[Number(formatWhole(player.e.points))]))return EN(1)
+      return EN(0)
+    },
+    getNextAt(){return requirements[Number(formatWhole(player.e.points))]},
+    prestigeButtonText(){return "Add 1 emoji to your server. Requires "+format(this.getNextAt())+" Points."},
+    type: "custom", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+    row: 4, // Row the layer is in on the tree (0 is the first row)
+    hotkeys: [
+        {key: "E", description: "E: emoji reset", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+    ],
+    layerShown(){return player[this.layer].unlocked||(hasUpgrade("r",23))},	
+update(diff){
+  if(hasUpgrade(this.layer,11))player.s.unlocked=true
+},
+upgrades:{
+11:{
+  title:"pog",
+  description(){return "Per emoji add 1 to the point hyperoperator, and unlock a minigame."},
+  effect(){return player.r.points.add(1)},
+  cost: new ExpantaNum(1),
+  pay(){},
+  unlocked(){return true},
+},
+  12:{
+  title:"kekw",
+  description(){return "Point effect hyperoperates points"},
+  cost: new ExpantaNum(1),
+  pay(){},
+  unlocked(){return player.x.points.gte(1)},
+},
+},
+  doReset(resettingLayer){
+  if (layers[resettingLayer].row > this.row) {
+  let keep = []
+  //keep.push("milestones")
+    layerDataReset(this.layer,keep)
+  }
+  },
+})
+addLayer("s", {
+    name: "minigame", // This is optional, only used in a few places, If absent it just uses the layer id.
+    symbol: "S", // This appears on the layer's node. Default is the id with the first letter capitalized
+    position: 1, // Horizontal position within a row. By default it uses the layer id and sorts in alphabetical order
+  resource: "points",
+    startData() { return {
+        unlocked: false,
+		points: new ExpantaNum(0),
+    
+    }},
+    color: "#159acd",
+    type: "none", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+    row: "side", // Row the layer is in on the tree (0 is the first row)
+    layerShown(){return player[this.layer].unlocked||(hasUpgrade("e",11))},	
+  tooltip:"",
+    tabFormat:[
+      "main-display",
+      ["tree",["v","w"]],
+      ["tree",["x","y"]],
+    ],
+  update(diff){
+    if(player.s.unlocked){
+      player.s.points=player.s.points.add(getMinigamePointGen().mul(diff))
+    }
+    if(player.s.points.gt(415))player.s.points=EN(415)
+  },
+  doReset(l){
+    if(["x","y","w","v"].includes(l))player[this.layer].points=EN(0)
+    if(["x","y"].includes(l)){
+      
+    }
+  }
+})
+addLayer("x", {row:-1,
+    name: "finished despacit mods", // This is optional, only used in a few places, If absent it just uses the layer id.
+    symbol: "F", // This appears on the layer's node. Default is the id with the first letter capitalized
+    startData() { return {
+        unlocked: true,
+		points: new ExpantaNum(0),
+    }},
+  branches:["v"],
+    color: "#4BDC13",
+    requires: new ExpantaNum(1), // Can be a function that takes requirement increases into account
+    resource: "finished despacit mods", // Name of prestige currency
+    baseResource: "progress", // Name of resource prestige is based on
+    baseAmount() {return layers.v.bars.progress.progress()}, // Get the current amount of baseResource
+    type: "static", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+  base: 2,
+    exponent: 1, // Prestige currency exponent
+    gainMult() { // Calculate the multiplier for main currency from bonuses
+        mult = new ExpantaNum(1)
+        return mult
+    },
+    gainExp() { // Calculate the exponent on main currency from bonuses
+        return new ExpantaNum(1)
+    },
+    hotkeys: [
+        {key: "x", description: "X: Finish a despacit mod", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+    ],
+    layerShown(){return true},
+  doReset(){}
+})
+addLayer("v", {row:-2,
+    name: "progress", // This is optional, only used in a few places, If absent it just uses the layer id.
+    symbol: "P", // This appears on the layer's node. Default is the id with the first letter capitalized
+    startData() { return {
+        unlocked: true,
+		points: new ExpantaNum(0),
+    }},
+  passiveGeneration(){return (hasMilestone("y",2)?100:0)},
+    color: "#AB5363",
+    requires: new ExpantaNum(0.1), // Can be a function that takes requirement increases into account
+    resource: "Progress points", // Name of prestige currency
+    baseResource: "points", // Name of resource prestige is based on
+    baseAmount() {return player.s.points}, // Get the current amount of baseResource
+    type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+    exponent: 0.5, // Prestige currency exponent
+    gainMult() { // Calculate the multiplier for main currency from bonuses
+        let mult = new ExpantaNum(1)
+        if (hasUpgrade("w",11))mult=mult.times(2)
+        return mult
+    },
+    gainExp() { // Calculate the exponent on main currency from bonuses
+        return new ExpantaNum(1).times(hasUpgrade("y",14)?4.2069:1)
+    },
+    hotkeys: [
+        {key: "v", description: "V: Reset for prestige points", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+    ],
+    layerShown(){return true},
+  bars: {
+    progress: {
+        direction: RIGHT,
+        width: 500,
+        height: 50,
+      fillStyle: {'background-color' : "#008000"},
+        progress() { 
+          let p = new ExpantaNum(0)
+          if (inChallenge(this.layer,12))return p
+          if (hasUpgrade(this.layer,11))p=p.plus(0.01)
+          if (hasUpgrade(this.layer,12))p=p.plus(0.01)
+          if (hasUpgrade(this.layer,13))p=p.plus(0.01)
+          if (hasUpgrade(this.layer,14))p=p.plus(0.01)
+          if (hasUpgrade(this.layer,15))p=p.plus(0.01)
+          if (hasChallenge(this.layer,11))p=p.plus(0.03)
+          if (hasUpgrade(this.layer,21))p=p.plus(0.02)
+          if (hasUpgrade(this.layer,22))p=p.plus(0.02)
+          if (hasUpgrade(this.layer,23))p=p.plus(0.01)
+          if (layers[this.layer].buyables[11].unlocked())p=p.plus(new ExpantaNum(0.1).times(player.v.buyables[11]))
+          if (hasUpgrade(this.layer,31))p=p.plus(0.1)
+          if (hasUpgrade(this.layer,32))p=p.plus(0.05)
+          if (hasUpgrade(this.layer,33))p=p.plus(0.2)
+          if (hasUpgrade(this.layer,34))p=p.plus(0.01)
+          if (hasUpgrade(this.layer,35))p=p.times(hasUpgrade("w",35)?1.01010101:hasUpgrade("w",34)?1.010101:hasUpgrade("w",22)?1.0101:1.01)
+          if (hasMilestone("y",4))p=p.plus(1/(10**10))
+          return p
+        },
+      display(){return "Progress to finishing your first despacit mod! ("+format(this.progress().times(100))+"%)"}
+    },
+}, 
+  tooltip: "Progress",
+tabFormat: {
+    "Progress": {
+        content: [
+          "main-display","prestige-button","blank",
+          ["bar","progress"],"blank","upgrades","blank","challenges"]
+    },
+"Buyables":{content:["buyables"]}
+},
+  upgrades: {
+    rows: 5,
+    cols: 5,
+    11: {
+      title:"Start your mod",
+        description: "Creates progress",
+        cost: new ExpantaNum(2),
+      
+    },
+12: {
+      title:"Add your first layer",
+        description: "Creates more progress",
+        cost: new ExpantaNum(3),
+  unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    13: {
+      title:"Update mod",
+        description: "Change the id, name, and author in mod.js to make more progress",
+        cost: new ExpantaNum(1),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    14: {
+      title:"Make an upgrade",
+        description: "Your upgrade is giving +0.02 to point gain and +0.01 to progress!",
+        cost: new ExpantaNum(1),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    15: {
+      title:"Bug fixing",
+        description: "You fix an upgrade and unlock a challenge",
+        cost: new ExpantaNum(4),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    21: {
+      title:"Upgrades!",
+        description: "Add 4 upgrades to the first layer of your mod. +0.02 progress",
+        cost: new ExpantaNum(15),
+      unlocked(){return hasChallenge(this.layer,11)}
+    },
+    22: {
+      title:"Buyables!",
+        description: "Add 4 buyables to the first layer of your mod. +0.02 progress",
+        cost: new ExpantaNum(15),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    23: {
+      title:"Complexity",
+        description: "Your mod becomes extremely complex and raises point gain to the power of 10",
+        cost: new ExpantaNum(20),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    24: {
+      title:"Challenges!",
+        description: "Add 4 challenges to the first layer of your-- actually, that's too much. +0.01 progress",
+        cost: new ExpantaNum(30),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    25: {
+      title:"Buyables again!",
+        description: "Add a buyable to this mod. You don't gain progress because this mod is not a despacit mod.",
+        cost: new ExpantaNum(1),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    31: {
+      title:"New stuff",
+        description: "Creates a new idea that has never been seen before! adds 0.1 to progress!",
+        cost: new ExpantaNum(100),
+      unlocked(){return getBuyableAmount("v",11).gte(5)}
+    },
+    32: {
+      title:"Use glitch",
+        description: "Mods now auto update and you gain 0.05 more progress. Also add 1 to point gain.",
+        cost: new ExpantaNum(50),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    33: {
+      title:"Add code",
+        description: "Spend an entire day working on your despacit mod and gain 0.2 progress!",
+        cost: new ExpantaNum(70),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    34: {
+      title:"Testing",
+        description: "Start testing your mod and rebalancing it. Gain 0.01 progress",
+        cost: new ExpantaNum(12),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    35: {
+      title:"Finish your mod",
+        description: "Multiply all previous progress effects by 1.01, and unlock the next layer",
+        cost: new ExpantaNum(69),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+},
+  challenges: {
+    rows: 2,
+    cols: 2,
+    11: {
+        name: "Broken mod",
+        challengeDescription: "Your mod breaks and you have to fix it. Point gain is halved.",
+        goal: new ExpantaNum(0.2),
+        rewardDescription(){return "Gain 0.03 progress and +1 to point gain"},
+      unlocked(){return hasUpgrade(this.layer,15)}
+    },
+    12: {
+        name: "No progress",
+        challengeDescription: "Progress is 0.",
+        goal: new ExpantaNum(30),
+        rewardDescription(){
+          let rew = new ExpantaNum(0.1)
+          if (hasUpgrade("y",12))rew=rew.times(player.p.points.plus(1).log10().plus(1).pow(0.25))
+          return "add "+rew.toFixed(6)+" to A gain exponent"},
+      unlocked(){return hasUpgrade("w",24)}
+    },
+},
+  buyables: {
+    rows: 2,
+    cols: 2,
+    11: {
+        cost() { return new ExpantaNum(3).pow(getBuyableAmount(this.layer,this.id)) },
+        display() { return (getBuyableAmount(this.layer,this.id).lt(5)?"Make a new layer and gain +0.1 progress.<br>Cost: "+this.cost():"You have bought the maximum number of layers.") },
+        canAfford() { return player[this.layer].points.gte(this.cost())&&getBuyableAmount(this.layer,this.id).lt(5) },
+        buy() {
+            player[this.layer].points = player[this.layer].points.sub(this.cost())
+            setBuyableAmount(this.layer, this.id, getBuyableAmount(this.layer, this.id).add(1))
+        },
+      unlocked(){return hasUpgrade(this.layer,25)}
+    },
+},
+  
+  doReset(resettingLayer){
+    console.log("resetted")
+  if (resettingLayer=="x"||resettingLayer=="y"){
+    let keep = []
+    if (hasMilestone("y",1)){
+      keep.push("upgrades")
+      keep.push("challenges"
+               )
+      keep.push("buyables")
+    }
+    layerDataReset(this.layer,keep)
+  }
+    player.s.points=EN(0)
+}
+})
+addLayer("w", {row:-2,
+    name: "abandoned mods", // This is optional, only used in a few places, If absent it just uses the layer id.
+    symbol: "A", // This appears on the layer's node. Default is the id with the first letter capitalized
+    startData() { return {
+        unlocked: false,
+		points: new ExpantaNum(0),
+    total: new ExpantaNum(0),
+      incrementali: new ExpantaNum(0),
+    }},
+    color: "#9ffb1b",
+    requires(){
+      if (hasUpgrade(this.layer,31))return new ExpantaNum(0.001)
+      if (hasUpgrade(this.layer,21))return new ExpantaNum(0.1)
+      return new ExpantaNum(10)}, // Can be a function that takes requirement increases into account
+    resource: "Abandoned mods", // Name of prestige currency
+    baseResource: "points", // Name of resource prestige is based on
+    baseAmount() {return player.s.points}, // Get the current amount of baseResource
+    type: "normal", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+    exponent: 0.25, // Prestige currency exponent
+    gainMult() { // Calculate the multiplier for main currency from bonuses
+        mult = new ExpantaNum(1)
+      if (hasUpgrade(this.layer,13))mult=mult.times(10)
+      if (hasUpgrade(this.layer,27))mult=mult.times(10)
+        return mult
+    },
+    gainExp() { // Calculate the exponent on main currency from bonuses
+        let e = new ExpantaNum(1)
+        let rew = new ExpantaNum(0.1)
+        if (hasUpgrade("y",12))rew=rew.times(player.p.points.plus(1).log10().plus(1).pow(0.25))
+        if (hasUpgrade(this.layer,24))e=e.plus(rew)
+      return e
+    },
+    hotkeys: [
+        {key: "w", description: "W: Reset for abandoned mods", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+    ],
+    layerShown(){return player[this.layer].unlocked||hasUpgrade("v",35)},
+  bars: {
+    progress: {
+        direction: RIGHT,
+        width: 500,
+        height: 50,
+      fillStyle: {'background-color' : "#008000"},
+        progress() { 
+          let p = new ExpantaNum(0)
+          p=player.w.total.div(1e6).min(1)
+          return p
+        },
+      display(){return "Progress to abandoning 1 million mods! ("+format(this.progress().times(100))+"%)"}
+    },
+}, 
+  clickables: {
+    11: {
+        display() {return "Gain 1 incrementali"},
+        canClick(){return true},
+      onClick(){player.w.incrementali=player.w.incrementali.plus(1)},
+      unlocked(){return hasUpgrade(this.layer,16)}
+    }
+},
+  tooltip: "Abandon mods",
+tabFormat: {
+    "Progress": {
+        content: [
+          "main-display","prestige-button","blank",
+          ["bar","progress"],"blank","upgrades"/*,"blank","challenges"*/]
+    },
+//"Buyables":{content:["buyables"]}
+  Incrementali:{
+    unlocked(){return hasUpgrade("w",12)&&!hasUpgrade("w",26)},
+    content:[["display-text",function(){return "You have "+format(player.w.incrementali)+" incrementali"}],"blank","clickables"]}
+},
+  update(diff){
+    if (hasUpgrade(this.layer,32))diff=diff*2
+    if (hasUpgrade(this.layer,33))player[this.layer].incrementali=player[this.layer].incrementali.plus(player[this.layer].incrementali.times(diff).max(1))
+    if (hasUpgrade(this.layer,12)){
+      player[this.layer].incrementali=player[this.layer].incrementali.plus(hasUpgrade(this.layer,14)?player[this.layer].incrementali.plus(3).log(10).times(diff):diff)
+    }
+  },
+  softcap: new ExpantaNum(10),
+  softcapPower(){
+    
+    let e = new ExpantaNum(1)
+    if (player.y.unlocked)e=e.plus(pinglol(player.y.points.div(10)))
+    return e
+    },
+  upgrades: {
+    rows: 3,
+    cols: 7,
+    11: {
+      title:"Restart your mod",
+        description: "You gain experience and get progress points 2x faster",
+        cost: new ExpantaNum(1),
+      
+    },
+12: {
+      title:"Enter the F",
+        description: "Unlock Incrementali",
+        cost: new ExpantaNum(3),
+  unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    13: {
+      title:"Abandon mods faster",
+        description: "Gain 10x the abandoned mods",
+        cost: new ExpantaNum(1),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    14: {
+      title:"log10 of incrementali+3",
+        description: "The title of this upgrade multiplies incrementali gain",
+        cost: new ExpantaNum(25),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    15: {
+      title:"Knowledge",
+        description: "you gain more knowledge. this does something",
+        cost: new ExpantaNum(40),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    
+    16: {
+      title:"Enhanced Spacetime",
+        description: "Adds a clickable to the incrementali tab",
+        cost: new ExpantaNum(50),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    17: {
+      title:"You have 0 progress.",
+        description: "Removes all of your progress, and you have to start over.",
+        cost: new ExpantaNum(1),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)},
+      onPurchase(){player.v.upgrades=[];player.v.points=new ExpantaNum(0);player.v.challenges[11]=0;player.v.buyables[11]=new ExpantaNum(0)}
+    },
+    21: {
+      title:"-9.9",
+        description: "Subtract 9.9 from the requirement of this layer",
+        cost: new ExpantaNum(44),
+      unlocked(){return hasUpgrade(this.layer,17)}
+    },
+    22: {
+      title:"Singularity",
+        description: "Add 1/10000 to the last progress upgrade's effect",
+        cost: new ExpantaNum(500),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    23: {
+      title:"Everyone ping",
+        description: "Allows you to ping @everyone, once you finish your mod.",
+        cost: new ExpantaNum(20),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    24: {
+      title:"Challenges!",
+        description: "Add 1 more challenge to the first layer of your mod.",
+        cost: new ExpantaNum(300),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    25: {
+      title:"Reset your incrementali",
+        description: "but log10 of incrementali adds to point gain.",
+        cost: new ExpantaNum(500),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)},
+      onPurchase(){player[this.layer].incrementali=new ExpantaNum(0)}
+    },
+    26: {
+      title:"Exit the F",
+        description: "Wait, that's illegal.",
+        cost: new ExpantaNum(500),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)},
+    },
+    27: {
+      title:"Timewall Gaming",
+        description: "Spend 10x less time on each mod and abandon 10x as many!",
+        cost: new ExpantaNum(500),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)},
+    },
+    
+    31: {
+      title:"-0.099",
+        description: "Subract 0.099 from the requirement of this layer, giving a √10x boost",
+        cost: new ExpantaNum(2345),
+      unlocked(){return hasUpgrade(this.layer,27)}
+    },
+    32: {
+      title:"Speed up time",
+        description: "Time is 2x faster",
+        cost: new ExpantaNum(1e4),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    33: {
+      title:"Exponential growth",
+        description: "Incrementali now grows exponentially",
+        cost: new ExpantaNum(2e4),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    34: {
+      title:"Research points",
+        description: "<b>Singularity</b> is 1% stronger",
+        cost: new ExpantaNum(3e4),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    35: {
+      title:"v2.0 update",
+        description: "content expansion in 2.0 upgrades! add 1/10000 to <b>Research Points</b>",
+        cost: new ExpantaNum(4e4),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)}
+    },
+    36: {
+      title:"error: i dont want to work lol",
+        description: 'throw("i dont want to work lol")',
+        cost: new ExpantaNum(5e4),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)},
+      onPurchase(){throw("i dont want to work lol")}
+    },
+    37:{
+      title:"Removing all softcaps",
+        description: "Adds a bit of tetration into point gain and unlock a layer",
+        cost: new ExpantaNum(345670),
+      unlocked(){return hasUpgrade(this.layer,this.id-1)},
+    }
+},
+  passiveGeneration(){return (hasMilestone("y",2)?1:0)},
+doReset(resettingLayer){
+  if (resettingLayer=="x"||resettingLayer=="y"){
+    let keep = []
+    if (hasMilestone("y",0)){
+      keep.push("upgrades")
+    }
+    layerDataReset(this.layer,keep)
+  }
+  player.s.points=EN(0)
+}
+})
+function pinglol(x){
+  if (x.gte(0.5)){return x.times(0.5).pow(0.5)}
+  else return x
+}
+addLayer("y", {row:-1,
+    name: "Softcaps", // This is optional, only used in a few places, If absent it just uses the layer id.
+    symbol: "S", // This appears on the layer's node. Default is the id with the first letter capitalized
+    startData() { return {
+        unlocked: false,
+		points: new ExpantaNum(0),
+    }},
+  branches:["w"],
+  onPrestige(){
+    player.w.points=new ExpantaNum(0)
+    player.v.points=new ExpantaNum(0)
+    if (!hasMilestone(this.layer,3))player.w.total=new ExpantaNum(0)
+  },
+  effectDescription(){return "adding "+pinglol(player.y.points.div(10)).toFixed(6)+" to the abandoned mods softcap power."},
+    color: "#294b66",
+    requires() {return new ExpantaNum(1e6).div(hasUpgrade(this.layer,13)?player.v.points.plus(1).log(10).plus(1).log(2).plus(1).pow(hasUpgrade(this.layer,14)?4.2069:1):1)}, // Can be a function that takes requirement increases into account
+    resource: "(softcapped)", // Name of prestige currency
+    baseResource: "total abandoned mods", // Name of resource prestige is based on
+    baseAmount() {return player.w.total}, // Get the current amount of baseResource
+    type: "static", // normal: cost to gain currency depends on amount gained. static: cost depends on how much you already have
+    base: 1.2,
+    exponent: 2, // Prestige currency exponent
+    gainMult() { // Calculate the multiplier for main currency from bonuses
+        mult = new ExpantaNum(1)
+        return mult
+    },
+    gainExp() { // Calculate the exponent on main currency from bonuses
+        return new ExpantaNum(1)
+    },
+    hotkeys: [
+        {key: "Y", description: "Y: Reset", onPress(){if (canReset(this.layer)) doReset(this.layer)}},
+    ],
+    layerShown(){return hasUpgrade("w",37)||player[this.layer].unlocked},
+  milestones:{
+  0: {
+        requirementDescription: "1 softcap",
+        effectDescription: "Always keep all abandoned mod upgrades and softcaps add to effective emojis",
+        done() { return player.y.points.gte(1) }
+    },
+    1: {
+        requirementDescription: "3 softcaps",
+        effectDescription: "Keep all progress upgrades, challenges, and buyables",
+        done() { return player.y.points.gte(3) }
+    },
+    2: {
+        requirementDescription: "4 softcaps",
+        effectDescription: "Gain 10000% of progress points and 100% of abandoned mods per second",
+        done() { return player.y.points.gte(4) },
+      unlocked(){return hasUpgrade(this.layer,11)}
+    },
+    3: {
+        requirementDescription: "8 softcaps",
+        effectDescription: "This layer no longer resets total abandoned mods.",
+        done() { return player.y.points.gte(8) },
+      unlocked(){return hasUpgrade(this.layer,13)}
+    },
+    4: {
+        requirementDescription: "11 softcaps",
+        effectDescription: "Add 1/(10^10) to the progress of your despacit mod",
+        done() { return player.y.points.gte(11) },
+      unlocked(){return hasUpgrade(this.layer,14)}
+    },
+  },
+  upgrades:{
+    rows:5,
+    cols:5,
+    11:{
+      title:"Abandoned",
+        description: "Abandoned mods boost point gain",
+        cost: new ExpantaNum(3),
+      unlocked(){return hasMilestone(this.layer,1)},
+    },
+    12:{
+      title:"Progression",
+        description: "Progress points boost <b>No Progress</b> reward",
+        cost: new ExpantaNum(6),
+      unlocked(){return hasMilestone(this.layer,2)},
+    },
+    13:{
+      title:"H",
+        description(){return "Progress points reduce this layer's requirement. Currently: /"+this.effect().toFixed(4)},
+      effect(){return player.v.points.plus(1).log(10).plus(1).log(2).plus(1).pow(hasUpgrade(this.layer,14)?4.2069:1)},
+        cost: new ExpantaNum(7),
+      unlocked(){return hasUpgrade(this.layer,12)},
+    },
+    14:{
+      title:"Some random upgrade name",
+        description(){return "P gain and H effect ^4.2069"},
+        cost: new ExpantaNum(8),
+      unlocked(){return hasUpgrade(this.layer,13)},
+    }
+  },
+  doReset(){
+    player.s.points=EN(0)
+  }
+})
+function getMinigamePointGen() {
+	let gain = new ExpantaNum(0.01)
+  if (hasUpgrade("v",14))gain=gain.plus(0.02)
+  if (hasChallenge("v",11))gain=gain.plus(1)
+  if (hasUpgrade("v",23))gain=gain.pow(10)
+  if (hasUpgrade("v",32))gain=gain.plus(1)
+  if (hasUpgrade("w",15))gain=gain.plus(1)
+  if (hasUpgrade("w",25))gain=gain.plus(player.w.incrementali.plus(1).log(10))
+  if (hasUpgrade("w",32))gain=gain.times(2)
+  if (hasUpgrade("w",37))gain=gain.tetrate(1.01)
+  if (hasUpgrade("y",11))gain=gain.times(player.w.points.plus(1).log10().plus(1))
+  if (inChallenge("v",11))gain=gain.div(2)
+	return gain
+}

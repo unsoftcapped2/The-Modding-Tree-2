@@ -137,47 +137,37 @@ function inChallenge(layer, id) {
 // ************ Misc ************
 
 var onTreeTab = true
-
-function showTab(name, prev) {
+function showTab(name) {
 	if (LAYERS.includes(name) && !layerunlocked(name)) return
 	if (player.tab !== name) clearParticles(function(p) {return p.layer === player.tab})
-	if (tmp[name] && player.tab === name && isPlainObject(tmp[name].tabFormat)) {
+	if (player.tab === name && isPlainObject(tmp[name].tabFormat)) {
 		player.subtabs[name].mainTabs = Object.keys(layers[name].tabFormat)[0]
 	}
 	var toTreeTab = name == "none"
 	player.tab = name
-	if (tmp[name] && (tmp[name].row !== "side") && (tmp[name].row !== "otherside")) player.lastSafeTab = name
+	if (player.navTab == "none" && (tmp[name].row !== "side") && (tmp[name].row !== "otherside")) player.lastSafeTab = name
+	delete player.notify[name]
 	updateTabFormats()
 	needCanvasUpdate = true
 	document.activeElement.blur()
 
 }
 
-function showNavTab(name, prev) {
-	console.log(prev)
+function showNavTab(name) {
 	if (LAYERS.includes(name) && !layerunlocked(name)) return
 	if (player.navTab !== name) clearParticles(function(p) {return p.layer === player.navTab})
-	if (tmp[name] && tmp[name].previousTab !== undefined) prev = tmp[name].previousTab
-	var toTreeTab = name == "tree-tab"
-	console.log(name + prev)
-	if (!tmp[prev]?.leftTab == !tmp[name]?.leftTab) player[name].prevTab = prev
-	else if (player[name])
-		player[name].prevTab = ""
+
+	var toTreeTab = name == "tree"
 	player.navTab = name
+	player.notify[name] = false
 	updateTabFormats()
 	needCanvasUpdate = true
 }
 
 
-function goBack(layer) {
-	let nextTab = "none"
-
-	if (player[layer].prevTab) nextTab = player[layer].prevTab
-	if (player.navTab === "none" && (tmp[layer]?.row == "side" || tmp[layer].row == "otherside")) nextTab = player.lastSafeTab
-
-	if (tmp[layer].leftTab) showNavTab(nextTab, layer)
-	else showTab(nextTab, layer)
-
+function goBack() {
+	if (player.navTab !== "none") showTab("none")
+	else showTab(player.lastSafeTab)
 }
 
 function layOver(obj1, obj2) {
@@ -249,6 +239,7 @@ function layerunlocked(layer) {
 function keepGoing() {
 	player.keepGoing = true;
 	needCanvasUpdate = true;
+	goBack()
 }
 
 function toNumber(x) {

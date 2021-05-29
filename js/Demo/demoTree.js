@@ -1,8 +1,6 @@
 // treeLayout will override the default tree's layout if used
 var layoutInfo = {
     startTab: "c",
-    startNavTab: "tree-tab",
-
 	showTree: true,
 
     //treeLayout: ""
@@ -38,17 +36,14 @@ addNode("g", {
 addNode("h", {
     branches: ["g"],
     layerShown: true,
-    tooltip() {return "Restore your points to " + player.c.otherThingy},
-    tooltipLocked() {return "Restore your points to " + player.c.otherThingy},
+    tooltip: "Restore your points to 10",
+    tooltipLocked: "Restore your points to 10",
     row: "side",
-    canClick() {return player.points.lt(player.c.otherThingy)},
-    onClick() {player.points = new ExpantaNum(player.c.otherThingy)}
+    canClick() {return player.points.lt(10)},
+    onClick() {player.points = new Decimal(10)}
 }, 
 )
 
 addLayer("tree-tab", {
-    tabFormat: [["tree", function() {return (layoutInfo.treeLayout ? layoutInfo.treeLayout : TREE_LAYERS)}]],
-    previousTab: "",
-    leftTab: true,
-
+    tabFormat: [["tree", function() {return (layoutInfo.treeLayout ? layoutInfo.treeLayout : TREE_LAYERS)}]]
 })

@@ -1,9 +1,8 @@
 var layoutInfo = {
     startTab: "none",
-    startNavTab: "tree-tab",
 	showTree: true,
 
-    treeLayout: ""
+    treeLayout: ""//{ 0: [{layer: "pmg", position: 0}, {layer: "amg", position: 1}] , 1: [{layer: "fmg", position: 0}, {layer: "smg", position: 1}] }
 
     
 }
@@ -17,7 +16,5 @@ addNode("blank", {
 
 
 addLayer("tree-tab", {
-    tabFormat: [["tree", function() {return (layoutInfo.treeLayout ? layoutInfo.treeLayout : TREE_LAYERS)}]],
-    previousTab: "",
-    leftTab: true,
+    tabFormat: [["tree", function() {return (layoutInfo.treeLayout ? layoutInfo.treeLayout : TREE_LAYERS)}]]
 })
