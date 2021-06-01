@@ -1578,8 +1578,7 @@ addLayer("s", {
   tooltip:"",
     tabFormat:[
       "main-display",
-      ["tree",["v","w"]],
-      ["tree",["x","y"]],
+      ["tree",[["v","w"],["x","y"]]],
     ],
   update(diff){
     if(player.s.unlocked){
